@@ -19,6 +19,8 @@ MINECRAFT_HOST=example.org
 MINECRAFT_PORT=25565
 POLL_INTERVAL_SECONDS=30
 STATUS_FILE_PATH=data/status.json
+REQUEST_TIMEOUT_SECONDS=5
+OFFLINE_AFTER_FAILURES=2
 ```
 3) Запустіть бота:
 ```bash
@@ -82,6 +84,8 @@ docker-compose up -d
 - Усі параметри задаються через змінні оточення (див. `.env.example`).
 - `POLL_INTERVAL_SECONDS` — частота опитування.
 - `STATUS_FILE_PATH` — куди писати JSON. Скрипт сам створить директорію, якщо її немає.
+- `REQUEST_TIMEOUT_SECONDS` — таймаут запиту до сервера (щоб не ловити «вічний» конект).
+- `OFFLINE_AFTER_FAILURES` — скільки послідовних помилок/таймаутів вважати перед тим, як оголосити офлайн.
 
 ## Перевірка
 - Запустіть бота і в Telegram відправте `/start`, потім `/status`, щоб побачити поточні дані.

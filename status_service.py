@@ -35,16 +35,25 @@ class MinecraftMonitor:
         status_file: Path,
         poll_interval_seconds: int,
         activity: ChatActivityTracker,
+        request_timeout_seconds: int,
+        offline_after_failures: int,
     ) -> None:
         self.server = JavaServer(host, port=port)
         self.status_file = status_file
         self.poll_interval_seconds = poll_interval_seconds
+        self.request_timeout_seconds = request_timeout_seconds
+        self.offline_after_failures = max(1, offline_after_failures)
         self._previous_snapshot: Optional[ServerSnapshot] = None
         self.activity = activity
+        self._consecutive_failures = 0
 
     async def fetch_status(self) -> ServerSnapshot:
         try:
-            response = await self.server.async_status()
+            response = await asyncio.wait_for(
+                self.server.async_status(),
+                timeout=self.request_timeout_seconds,
+            )
+            self._consecutive_failures = 0
             motd = getattr(response.description, "to_plain", lambda: None)()
             player_names = [player.name for player in response.players.sample or []]
             return ServerSnapshot(
@@ -57,7 +66,20 @@ class MinecraftMonitor:
                 player_names=player_names,
             )
         except Exception:
-            # Treat any exception as offline state but keep last known data safe.
+            self._consecutive_failures += 1
+            if self._consecutive_failures < self.offline_after_failures:
+                # Возвращаем последнее известное состояние, помечая время обновления.
+                if self._previous_snapshot:
+                    return ServerSnapshot(
+                        online=self._previous_snapshot.online,
+                        motd=self._previous_snapshot.motd,
+                        version=self._previous_snapshot.version,
+                        latency_ms=self._previous_snapshot.latency_ms,
+                        players_online=self._previous_snapshot.players_online,
+                        players_max=self._previous_snapshot.players_max,
+                        player_names=self._previous_snapshot.player_names,
+                    )
+            # После порога считаем сервер офлайн.
             return ServerSnapshot(
                 online=False,
                 motd=None,

@@ -29,6 +29,8 @@ async def main() -> None:
         status_file=Path(settings.status_file_path),
         poll_interval_seconds=settings.poll_interval_seconds,
         activity=activity,
+        request_timeout_seconds=settings.request_timeout_seconds,
+        offline_after_failures=settings.offline_after_failures,
     )
     dp.include_router(setup_handlers(monitor, activity))
 
