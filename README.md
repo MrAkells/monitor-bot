@@ -45,6 +45,14 @@ docker run -d \
 ```
 `STATUS_FILE_PATH` варто вказувати у змонтовану директорію (`/data`), щоб JSON був доступний зовні.
 
+## Запуск через Docker Compose
+1) Заповніть `.env` (TOKEN, CHAT_ID, HOST тощо). `STATUS_FILE_PATH` можна залишити як `/data/status.json` — він задається в `docker-compose.yml`.
+2) Запустіть:
+```bash
+docker-compose up -d
+```
+3) Дані будуть у локальній директорії `./data/status.json` (проксі на `/data` у контейнері).
+
 ## Що робить бот
 - Кожні `POLL_INTERVAL_SECONDS` секунд опитує Minecraft сервер.
 - Пише результат у JSON файл `STATUS_FILE_PATH`, наприклад `data/status.json`:
